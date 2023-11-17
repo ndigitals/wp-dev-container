@@ -1,0 +1,77 @@
+ARG PHP_VERSION=8.3
+
+FROM php:${PHP_VERSION}-fpm-bullseye
+
+LABEL org.opencontainers.image.url=https://github.com/ndigitals/wp-dev-container/pkgs/container/wp-dev-container
+LABEL org.opencontainers.image.documentation=https://github.com/ndigitals/wp-dev-container/wiki
+LABEL org.opencontainers.image.source=https://github.com/ndigitals/wp-dev-container
+LABEL org.opencontainers.image.vendor="Nolte Digital Solutions"
+LABEL org.opencontainers.image.licenses=MIT
+
+WORKDIR /var/www
+
+##########################################################################
+#
+# This setup is generally a direct copy from https://github.com/WordPress/wpdev-docker-images
+#
+
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV COMPOSER_HOME /tmp
+
+# install the PHP extensions we need
+RUN set -ex; \
+	\
+	apt-get update; \
+	\
+	apt-get install -y --no-install-recommends libjpeg-dev libpng-dev libwebp-dev libzip-dev libmemcached-dev unzip libmagickwand-dev ghostscript libonig-dev locales sudo rsync libxslt-dev git; \
+	apt-get upgrade openssl -y; \
+	update-ca-certificates --fresh; \
+	sed -i 's/^# *\(\(ru_RU\|fr_FR\|de_DE\|es_ES\|ja_JP\).UTF-8\)/\1/' /etc/locale.gen; \
+	locale-gen; \
+	\
+	docker-php-ext-configure gd --enable-gd --with-jpeg=/usr --with-webp=/usr; \
+	\
+	docker-php-ext-install gd opcache mysqli zip exif intl mbstring xml xsl; \
+	\
+	curl --location --output /usr/local/bin/pickle https://github.com/FriendsOfPHP/pickle/releases/download/v0.7.11/pickle.phar; \
+	chmod +x /usr/local/bin/pickle; \
+	\
+	pickle install memcached-3.2.0; \
+	pickle install xdebug-3.3.0; \
+	pickle install imagick; \
+	docker-php-ext-enable imagick; \
+	\
+	curl --silent --fail --location --retry 3 --output /tmp/installer.php --url https://getcomposer.org/installer; \
+	curl --silent --fail --location --retry 3 --output /tmp/installer.sig --url https://composer.github.io/installer.sig; \
+	php -r " \
+		\$signature = file_get_contents( '/tmp/installer.sig' ); \
+		\$hash = hash( 'sha384', file_get_contents('/tmp/installer.php') ); \
+		if ( \$signature !== \$hash ) { \
+			unlink( '/tmp/installer.php' ); \
+			unlink( '/tmp/installer.sig' ); \
+			echo 'Integrity check failed, installer is either corrupt or worse.' . PHP_EOL; \
+			exit( 1 ); \
+		}"; \
+	php /tmp/installer.php --no-ansi --install-dir=/usr/bin --2 --filename=composer; \
+	composer --ansi --version --no-interaction; \
+	rm -f /tmp/installer.php /tmp/installer.sig;
+
+COPY entrypoint.sh /entrypoint.sh
+COPY common.sh /common.sh
+COPY php-fpm.conf /usr/local/etc/php-fpm.d/zz-wordpress.conf
+
+ARG imagemagic_config=/etc/ImageMagick-6/policy.xml
+RUN if [ -f $imagemagic_config ] ; then \
+		sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' $imagemagic_config; \
+	else \
+		echo did not see file $imagemagic_config; \
+	fi
+
+RUN chmod +x /entrypoint.sh && \
+    chmod +x /common.sh && \
+    groupadd -g 1000 -r wp_php && \
+    useradd -u 1000 -s /bin/bash -g wp_php wp_php
+
+ENTRYPOINT [ "/entrypoint.sh" ]
+
+CMD [ "php-fpm" ]
