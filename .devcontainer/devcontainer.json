@@ -1,0 +1,34 @@
+// For format details, https://containers.dev/implementors/json_reference/.
+{
+	"build": {
+		"dockerfile": "./Dockerfile",
+		"context": ".",
+		"args": {
+			"PHP_VERSION": "${localEnv:PHP_VERSION}"
+		}
+	},
+
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "wp_php"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "${localEnv:NODE_VERSION}"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "./local-features/wp-cli": "latest",
+    "./local-features/php-cli-xdebug": "latest"
+  },
+
+  "overrideFeatureInstallOrder": [
+    "ghcr.io/devcontainers/features/common-utils",
+    "ghcr.io/devcontainers/features/node",
+    "ghcr.io/devcontainers/features/docker-in-docker",
+    "ghcr.io/devcontainers/features/git",
+    "ghcr.io/devcontainers/features/github-cli",
+    "./local-features/wp-cli",
+    "./local-features/php-cli-xdebug"
+  ]
+}
