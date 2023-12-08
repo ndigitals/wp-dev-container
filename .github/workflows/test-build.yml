@@ -7,7 +7,7 @@ on:
       - develop
 
 concurrency:
-  group: '${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  group: ${{ github.workflow }}
 
 env:
   REGISTRY: ghcr.io

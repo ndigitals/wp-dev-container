@@ -7,7 +7,7 @@ on:
       - main
 
 concurrency:
-  group: '${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  group: ${{ github.workflow }}
 
 env:
   PHP_STABLE_VERSION: '8.3'
@@ -47,6 +47,9 @@ jobs:
 
     runs-on:
       - ${{ matrix.builder }}
+
+    concurrency:
+      group: ${{ matrix.PHP_VERSION }}-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
 
     steps:
       - name: Checkout
@@ -97,7 +100,9 @@ jobs:
           skipContainerUserIdUpdate: true
 
       - name: Copy Container to Storage
-        run: skopeo copy containers-storage:${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }} oci-archive:/tmp/${{ matrix.platform }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+        run: |
+            mkdir /tmp/${{ matrix.platform }}
+            skopeo copy containers-storage:${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }} oci-archive:/tmp/${{ matrix.platform }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
 
       # https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload Digests
@@ -129,6 +134,9 @@ jobs:
           - '20'
 
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ matrix.PHP_VERSION }}-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
 
     steps:
       - name: Download Digests - amd64
