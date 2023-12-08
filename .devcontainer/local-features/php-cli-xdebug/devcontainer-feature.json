@@ -1,0 +1,8 @@
+{
+    "Id": "php-cli-xdebug",
+    "name": "Configure PHP CLI w/ Xdebug",
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

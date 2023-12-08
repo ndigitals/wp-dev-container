@@ -1,0 +1,8 @@
+{
+    "Id": "wp-cli",
+    "name": "Install the WP-CLI",
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}
