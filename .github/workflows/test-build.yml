@@ -80,14 +80,12 @@ jobs:
           platform: linux/${{ matrix.platform }}
           imageName: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
           cacheFrom: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
-          imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
+          imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
           push: never
           skipContainerUserIdUpdate: true
 
       - name: Test Copying Container Image Archive
         run: |
-            rm -rf /tmp/${{ matrix.platform }}
-            mkdir /tmp/${{ matrix.platform }}
-            mv /tmp/output.tar /tmp/${{ matrix.platform }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
-
+            rm -f /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+            mv /tmp/output.tar /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
 
