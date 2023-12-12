@@ -137,13 +137,13 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64
-          path: /tmp
+          path: /tmp/${{ env.PACKAGE }}
 
       - name: Download Digests - arm64
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
-          path: /tmp
+          path: /tmp/${{ env.PACKAGE }}
 
       # https://github.com/marketplace/actions/docker-setup-buildx
       - name: Set up Docker Buildx
@@ -167,7 +167,7 @@ jobs:
           tags: type=raw,value=php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
 
       - name: Create Manifest List and Push
-        working-directory: /tmp
+        working-directory: /tmp/${{ env.PACKAGE }}
         run: |
             docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}@sha256:%s ' *)
