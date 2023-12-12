@@ -70,25 +70,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: false
 
-      # https://github.com/marketplace/actions/docker-metadata-action
-      - name: Docker Metadata
-        uses: docker/metadata-action@v5
-        id: metadata
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
-          tags: type=raw,value=php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
-          flavor: suffix=-${{ matrix.platform }}
-
       # https://github.com/marketplace/actions/setup-node-js-environment
       - name: Setup Node Environment
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
       # https://github.com/marketplace/actions/dev-container-build-and-run-action
-      - name: Pre-build dev container image
+      - name: Pre-build Dev Container Image
         uses: devcontainers/ci@v0.3
         env:
+          # see: https://github.com/devcontainers/ci/issues/191#issuecomment-1603857155
+          BUILDX_NO_DEFAULT_ATTESTATIONS: true
           PHP_VERSION: ${{ matrix.PHP_VERSION }}
           NODE_VERSION: ${{ matrix.NODE_VERSION }}
         with:
@@ -99,10 +92,11 @@ jobs:
           push: never
           skipContainerUserIdUpdate: true
 
-      - name: Copy Container to Storage
+      - name: Prepare Container Image Archive
         run: |
+            rm -rf /tmp/${{ matrix.platform }}
             mkdir /tmp/${{ matrix.platform }}
-            skopeo copy containers-storage:${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }} oci-archive:/tmp/${{ matrix.platform }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+            mv /tmp/output.tar /tmp/${{ matrix.platform }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
 
       # https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload Digests
@@ -176,10 +170,7 @@ jobs:
         working-directory: /tmp
         run: |
             docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
-
-      - name: Inspect image
-        run: docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.metadata.outputs.version }}
+            $(printf '${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}@sha256:%s ' *)
 
   release:
     name: Publish Release
