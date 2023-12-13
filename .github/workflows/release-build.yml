@@ -132,17 +132,19 @@ jobs:
       group: ${{ matrix.PHP_VERSION }}-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
 
     steps:
+      # https://github.com/marketplace/actions/download-a-build-artifact
       - name: Download Digests - amd64
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64
-          path: /tmp/${{ env.PACKAGE }}/amd64
+          path: /tmp/${{ env.PACKAGE }}/amd64/${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
 
+      # https://github.com/marketplace/actions/download-a-build-artifact
       - name: Download Digests - arm64
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
-          path: /tmp/${{ env.PACKAGE }}/arm64
+          path: /tmp/${{ env.PACKAGE }}/arm64/${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
 
       # https://github.com/marketplace/actions/docker-setup-buildx
       - name: Set up Docker Buildx
