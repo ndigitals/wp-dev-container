@@ -28,26 +28,31 @@ jobs:
         NODE_VERSION:
           - '16'
           - '20'
-        builder:
-          - ubuntu-22.04
-          - self-hosted
-        platform:
-          - amd64
-          - arm64
-        exclude:
-          - builder: ubuntu-22.04
-            platform: arm64
-          - builder: self-hosted
-            platform: amd64
+        #builder:
+        #  - ubuntu-22.04
+        #  - self-hosted
+        #platform:
+        #  - amd64
+        #  - arm64
+        #exclude:
+        #  - builder: ubuntu-22.04
+        #    platform: arm64
+        #  - builder: self-hosted
+        #    platform: amd64
 
     runs-on:
-      - ${{ matrix.builder }}
+      #- ${{ matrix.builder }}
+      - ubuntu-22.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Required due to the way Git works, without it this action won't be able to find any or the correct tags
+
+      # https://github.com/marketplace/actions/docker-setup-qemu
+      - name: Set up QEMU for multi-architecture builds
+        uses: docker/setup-qemu-action@v3
 
       # https://github.com/marketplace/actions/docker-setup-buildx
       - name: Set up Docker Buildx
@@ -77,65 +82,87 @@ jobs:
           PHP_VERSION: ${{ matrix.PHP_VERSION }}
           NODE_VERSION: ${{ matrix.NODE_VERSION }}
         with:
-          platform: linux/${{ matrix.platform }}
+          platform: linux/amd64,linux/arm64
           imageName: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
           cacheFrom: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
           imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
           push: never
           skipContainerUserIdUpdate: true
 
-      - name: Test Copying Container Image Archive
-        run: |
-            rm -f /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
-            mv /tmp/output.tar /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+      #- name: Test Copying Container Image Archive
+      #  run: |
+      #      rm -f /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}-oci.tar
+      #      mv /tmp/output.tar /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}-oci.tar
 
       # https://github.com/marketplace/actions/upload-a-build-artifact
-      - name: Upload Digests
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
-          path: /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
-          if-no-files-found: error
-          retention-days: 1
+      #- name: Upload Digests
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
+      #    path: /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}-oci.tar
+      #    if-no-files-found: error
+      #    retention-days: 1
 
-  download:
-    name: Test Download Images
-    needs: build
-    permissions:
-      contents: read
-      packages: write
+  #download:
+  #  name: Test Download Images
+  #  needs: build
+  #  permissions:
+  #    contents: read
+  #    packages: write
 
-    strategy:
-      fail-fast: false
-      matrix: 
-        PHP_VERSION:
-          - '8.0'
-          - '8.3'
-        NODE_VERSION:
-          - '16'
-          - '20'
+    #strategy:
+    #  fail-fast: false
+    #  matrix: 
+    #    PHP_VERSION:
+    #      - '8.0'
+    #      - '8.3'
+    #    NODE_VERSION:
+    #      - '16'
+    #      - '20'
 
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
 
-    concurrency:
-      group: ${{ matrix.PHP_VERSION }}-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
+    #concurrency:
+    #  group: ${{ matrix.PHP_VERSION }}-${{ matrix.NODE_VERSION }}
 
-    steps:
+    #steps:
       # https://github.com/marketplace/actions/download-a-build-artifact
-      - name: Download Digests - amd64
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64
-          path: /tmp/${{ env.PACKAGE }}/amd64/${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+      #- name: Download Digests - amd64
+      #  uses: actions/download-artifact@v3
+      #  with:
+      #    name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64
+      #    path: /tmp/${{ env.PACKAGE }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64-oci.tar
 
       # https://github.com/marketplace/actions/download-a-build-artifact
-      - name: Download Digests - arm64
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
-          path: /tmp/${{ env.PACKAGE }}/arm64/${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+      #- name: Download Digests - arm64
+      #  uses: actions/download-artifact@v3
+      #  with:
+      #    name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
+      #    path: /tmp/${{ env.PACKAGE }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64-oci.tar
+
+      # https://github.com/marketplace/actions/docker-setup-buildx
+      #- name: Set up Docker Buildx
+      #  uses: docker/setup-buildx-action@v3
 
       - name: List Artifact Downloads
         run: ls -R
-        working-directory: /tmp/${{ env.PACKAGE }}
+        working-directory: /tmp
+
+      # https://github.com/marketplace/actions/docker-metadata-action
+      #- name: Docker Metadata
+      #  uses: docker/metadata-action@v5
+      #  id: metadata
+      #  with:
+      #    tags: type=raw,value=php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
+
+      #- name: Create Manifest List & Image Locally
+      #  working-directory: /tmp/${{ env.PACKAGE }}
+      #  run: |
+      #      docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+      #      $(printf '${{ env.PACKAGE }}@sha256:%s ' *)
+
+      #- name: Inspect Manifest List
+      #  working-directory: /tmp/${{ env.PACKAGE }}
+      #  run: |
+      #      docker buildx imagetools inspect ${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
 

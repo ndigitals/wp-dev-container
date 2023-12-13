@@ -94,15 +94,15 @@ jobs:
 
       - name: Prepare Container Image Archive
         run: |
-            rm -f /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
-            mv /tmp/output.tar /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+            rm -f /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}-oci.tar
+            mv /tmp/output.tar /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}-oci.tar
 
       # https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload Digests
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
-          path: /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+          path: /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}-oci.tar
           if-no-files-found: error
           retention-days: 1
 
@@ -129,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: ${{ matrix.PHP_VERSION }}-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
+      group: ${{ matrix.PHP_VERSION }}-${{ matrix.NODE_VERSION }}
 
     steps:
       # https://github.com/marketplace/actions/download-a-build-artifact
@@ -137,14 +137,14 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64
-          path: /tmp/${{ env.PACKAGE }}/amd64/${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+          path: /tmp/${{ env.PACKAGE }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64-oci.tar
 
       # https://github.com/marketplace/actions/download-a-build-artifact
       - name: Download Digests - arm64
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
-          path: /tmp/${{ env.PACKAGE }}/arm64/${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
+          path: /tmp/${{ env.PACKAGE }}/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64-oci.tar
 
       # https://github.com/marketplace/actions/docker-setup-buildx
       - name: Set up Docker Buildx
@@ -164,7 +164,6 @@ jobs:
         uses: docker/metadata-action@v5
         id: metadata
         with:
-          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
           tags: type=raw,value=php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
 
       - name: Create Manifest List and Push
@@ -172,6 +171,11 @@ jobs:
         run: |
             docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}@sha256:%s ' *)
+
+      - name: Inspect Manifest List
+        working-directory: /tmp/${{ env.PACKAGE }}
+        run: |
+            docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
 
   release:
     name: Publish Release
