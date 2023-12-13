@@ -1,0 +1,150 @@
+name: Test Builds
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ndigitals
+  PACKAGE: wp-dev-container
+  ACTION_VERSION: 1
+
+jobs:
+  build:
+    name: Build Images
+
+    strategy:
+      fail-fast: false
+      matrix: 
+        PHP_VERSION:
+          - '8.0'
+        NODE_VERSION:
+          - '16'
+        builder:
+          - ubuntu-22.04
+          - self-hosted
+        platform:
+          - amd64
+          - arm64
+        exclude:
+          - builder: ubuntu-22.04
+            platform: arm64
+          - builder: self-hosted
+            platform: amd64
+
+    runs-on:
+      - ${{ matrix.builder }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required due to the way Git works, without it this action won't be able to find any or the correct tags
+
+      # https://github.com/marketplace/actions/docker-setup-buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # https://github.com/marketplace/actions/docker-login
+      - name: Login to GitHub Packages
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+
+      # https://github.com/marketplace/actions/setup-node-js-environment
+      - name: Setup Node Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install Dev Container CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Clean-up & Prepare Temp Space
+        run: |
+            rm -f /tmp/*.tar || true
+            rm -rf /tmp/${{ matrix.platform }} || true
+            rm -rf /tmp/${{ env.PACKAGE }} || true
+            mkdir /tmp/${{ env.PACKAGE }}
+
+      - name: Pre-build Dev Container Image
+        env:
+          # see: https://github.com/devcontainers/ci/issues/191#issuecomment-1603857155
+          BUILDX_NO_DEFAULT_ATTESTATIONS: true
+          PHP_VERSION: ${{ matrix.PHP_VERSION }}
+          NODE_VERSION: ${{ matrix.NODE_VERSION }}
+        run: |
+            devcontainer build --workspace-folder . \
+            --image-name ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }} \
+            --platform linux/${{ matrix.platform }} \
+            --output type=registry \
+            --cache-from ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }} \
+            --cache-from ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
+
+  download:
+    name: Test Download Images
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix: 
+        PHP_VERSION:
+          - '8.0'
+        NODE_VERSION:
+          - '16'
+
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ matrix.PHP_VERSION }}-${{ matrix.NODE_VERSION }}
+
+    steps:
+      # https://github.com/marketplace/actions/download-a-build-artifact
+      - name: Download Digests - amd64
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64
+          path: /tmp/${{ env.PACKAGE }}/
+
+      # https://github.com/marketplace/actions/download-a-build-artifact
+      - name: Download Digests - arm64
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
+          path: /tmp/${{ env.PACKAGE }}/
+
+      # https://github.com/marketplace/actions/docker-setup-buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: List Artifact Downloads
+        working-directory: /tmp/${{ env.PACKAGE }}
+        run: ls -R
+
+      # https://github.com/marketplace/actions/docker-metadata-action
+      - name: Docker Metadata
+        uses: docker/metadata-action@v5
+        id: metadata
+        with:
+          tags: type=raw,value=php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
+
+      - name: Inspect Images
+        working-directory: /tmp/${{ env.PACKAGE }}
+        run: |
+            docker buildx imagetools inspect ./php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64
+            docker buildx imagetools inspect ./php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
+
+      #- name: Create Manifest List & Image Locally
+      #  working-directory: /tmp/${{ env.PACKAGE }}
+      #  run: |
+      #      docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }} -f php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64 -f php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64 --dry-run
+
