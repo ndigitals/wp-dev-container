@@ -99,7 +99,7 @@ jobs:
 
       # https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload Digests
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE }}-php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
           path: /tmp/php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-oci.tar
