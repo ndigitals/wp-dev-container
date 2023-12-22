@@ -139,7 +139,6 @@ jobs:
           tags: type=raw,value=php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
 
       - name: Inspect Images
-        working-directory: /tmp/${{ env.PACKAGE }}
         run: |
             docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-amd64
             docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
@@ -151,7 +150,6 @@ jobs:
             --append ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-arm64
 
       - name: Inspect Manifest List
-        working-directory: /tmp/${{ env.PACKAGE }}
         run: |
             docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}:php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
 
