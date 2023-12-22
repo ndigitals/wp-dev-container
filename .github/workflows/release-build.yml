@@ -76,7 +76,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      # https://github.com/marketplace/actions/dev-container-build-and-run-acttype=registryion
+      # https://github.com/marketplace/actions/dev-container-build-and-run-action
       - name: Pre-build Dev Container Image
         uses: devcontainers/ci@v0.3
         env:
@@ -88,7 +88,7 @@ jobs:
           platform: linux/${{ matrix.platform }}
           imageName: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
           cacheFrom: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
-          imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
+          imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }},php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
           push: always
           skipContainerUserIdUpdate: true
 
