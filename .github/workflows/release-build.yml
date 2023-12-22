@@ -76,23 +76,10 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Set amd64 Image Tags
-        id: image-tags
-        if: matrix.platform == 'amd64'
-        run: |
-          IMAGE_TAGS=$(echo php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }},php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }})
-          echo "IMAGE_TAGS=$IMAGE_TAGS" >> $GITHUB_OUTPUT
-
-      - name: Set arm64 Image Tags
-        id: image-tags
-        if: matrix.platform == 'arm64'
-        run: |
-          IMAGE_TAGS=$(echo php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }})
-          echo "IMAGE_TAGS=$IMAGE_TAGS" >> $GITHUB_OUTPUT
-
       # https://github.com/marketplace/actions/dev-container-build-and-run-action
       - name: Pre-build Dev Container Image
         uses: devcontainers/ci@v0.3
+        if: matrix.platform == 'amd64'
         env:
           # see: https://github.com/devcontainers/ci/issues/191#issuecomment-1603857155
           BUILDX_NO_DEFAULT_ATTESTATIONS: true
@@ -102,7 +89,24 @@ jobs:
           platform: linux/${{ matrix.platform }}
           imageName: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
           cacheFrom: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
-          imageTag: ${{ steps.image-tags.outputs.IMAGE_TAGS }}
+          imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }},php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
+          push: always
+          skipContainerUserIdUpdate: true
+
+      # https://github.com/marketplace/actions/dev-container-build-and-run-action
+      - name: Pre-build Dev Container Image
+        uses: devcontainers/ci@v0.3
+        if: matrix.platform == 'arm64'
+        env:
+          # see: https://github.com/devcontainers/ci/issues/191#issuecomment-1603857155
+          BUILDX_NO_DEFAULT_ATTESTATIONS: true
+          PHP_VERSION: ${{ matrix.PHP_VERSION }}
+          NODE_VERSION: ${{ matrix.NODE_VERSION }}
+        with:
+          platform: linux/${{ matrix.platform }}
+          imageName: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
+          cacheFrom: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
+          imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
           push: always
           skipContainerUserIdUpdate: true
 
