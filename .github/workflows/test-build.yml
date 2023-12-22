@@ -80,7 +80,7 @@ jobs:
           platform: linux/${{ matrix.platform }}
           imageName: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
           cacheFrom: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.PACKAGE }}
-          imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}
+          imageTag: php-${{ matrix.PHP_VERSION }}-node-${{ matrix.NODE_VERSION }}-${{ matrix.platform }}
           push: never
           skipContainerUserIdUpdate: true
 
