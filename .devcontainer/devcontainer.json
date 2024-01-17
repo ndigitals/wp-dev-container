@@ -18,6 +18,8 @@
     },
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
+    "./local-features/mysql-client": "latest",
+    "./local-features/subversion": "latest",
     "./local-features/wp-cli": "latest",
     "./local-features/php-cli-xdebug": "latest"
   },
@@ -28,6 +30,8 @@
     "ghcr.io/devcontainers/features/docker-in-docker",
     "ghcr.io/devcontainers/features/git",
     "ghcr.io/devcontainers/features/github-cli",
+    "./local-features/mysql-client",
+    "./local-features/subversion",
     "./local-features/wp-cli",
     "./local-features/php-cli-xdebug"
   ]

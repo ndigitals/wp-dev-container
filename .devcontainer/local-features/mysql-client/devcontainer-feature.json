@@ -1,0 +1,8 @@
+{
+    "Id": "mysql-client",
+    "name": "Install the MySQL/MariaDB client",
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}

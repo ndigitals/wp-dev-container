@@ -1,0 +1,8 @@
+{
+    "Id": "subversion",
+    "name": "Install the Subversion CLI",
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}
