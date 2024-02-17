@@ -23,10 +23,10 @@ jobs:
       fail-fast: false
       matrix: 
         PHP_VERSION:
-          - '8.0'
+          - '8.1'
           - '8.3'
         NODE_VERSION:
-          - '16'
+          - '18'
           - '20'
         builder:
           - ubuntu-22.04

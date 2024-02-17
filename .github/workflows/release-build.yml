@@ -201,7 +201,7 @@ jobs:
 
       # https://github.com/marketplace/actions/create-release
       - name: Create Release
-        uses: ncipollo/release-action@v1.13.0
+        uses: ncipollo/release-action@v1.14.0
         with:
           name: ${{ steps.release-name.outputs.RELEASE_NAME }}
           tag: ${{ steps.semver.outputs.next }}
