@@ -17,22 +17,16 @@ WordPress Plugin &amp; Theme Dev Container
 
 ## Usage
 
-### Download an image
+When setting up your Dev Container choose a tag for the PHP & NodeJS version you need.
 
-Download the WP Dev Container image, choose a tag for the PHP & NodeJS version you need.
-
-```shell
-docker pull docker pull ghcr.io/ndigitals/wp-dev-container:php-8.2-node-20
-```
-
-## NodeJS Support
-
-This image includes NodeJS in order to run NodeJS apps. Choose a tag that includes the version of NodeJS needed.
+- Local Development Options
+  - Visual Studio Code w/ [Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+    - [Tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial)
+  - [DevPod](https://devpod.sh/) using either the [GUI](https://devpod.sh/docs/getting-started/install) or [CLI](https://devpod.sh/docs/getting-started/quickstart-devpod-cli)
+- [Codespaces](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers)
 
 ## Support & Feedback
 
-If you still have a question after using OpenLiteSpeed Docker, you have a few options.
-
-- Reporting any issue on [Github wp-dev-container](https://github.com/ndigitals/wp-dev-container/issues) project
+If you have any questions or issues after using the image, you can report any issues via [Github](https://github.com/ndigitals/wp-dev-container/issues).
 
 **Pull requests are always welcome**
