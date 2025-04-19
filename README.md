@@ -6,10 +6,10 @@ WordPress Plugin &amp; Theme Dev Container
 
 ## Supported tags
 
-- `php-8.3-node-20`, `php-8.3-node-18`, `php-8.3-node-16`
-- `php-8.2-node-20`, `php-8.2-node-18`, `php-8.2-node-16`
-- `php-8.1-node-20`, `php-8.1-node-18`, `php-8.1-node-16`
-- `php-8.0-node-20`, `php-8.0-node-18`, `php-8.0-node-16`
+- `php-8.3-node-22`, `php-8.3-node-20`, `php-8.3-node-18`, `php-8.3-node-16`
+- `php-8.2-node-22`, `php-8.2-node-20`, `php-8.2-node-18`, `php-8.2-node-16`
+- `php-8.1-node-22`, `php-8.1-node-20`, `php-8.1-node-18`, `php-8.1-node-16`
+- `php-8.0-node-22`, `php-8.0-node-20`, `php-8.0-node-18`, `php-8.0-node-16`
 
 ## Prerequisites
 
