@@ -27,7 +27,7 @@ jobs:
           - '8.3'
         NODE_VERSION:
           - '18'
-          - '20'
+          - '22'
         builder:
           - ubuntu-22.04
           - self-hosted
