@@ -11,7 +11,7 @@ concurrency:
 
 env:
   PHP_STABLE_VERSION: '8.3'
-  NODE_STABLE_VERSION: '20'
+  NODE_STABLE_VERSION: '22'
   REGISTRY: ghcr.io
   OWNER: ndigitals
   PACKAGE: wp-dev-container
@@ -33,6 +33,7 @@ jobs:
           - '16'
           - '18'
           - '20'
+          - '22'
         builder:
           - ubuntu-22.04
           - self-hosted
@@ -204,7 +205,7 @@ jobs:
 
       # https://github.com/marketplace/actions/create-release
       - name: Create Release
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@v1.16.0
         if: github.event_name == 'push'
         with:
           name: ${{ steps.release-name.outputs.RELEASE_NAME }}
