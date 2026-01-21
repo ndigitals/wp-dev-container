@@ -1,6 +1,6 @@
 ARG PHP_VERSION=8.3
 
-FROM php:${PHP_VERSION}-fpm-bullseye
+FROM php:${PHP_VERSION}-fpm-bookworm
 
 LABEL org.opencontainers.image.url=https://github.com/ndigitals/wp-dev-container/pkgs/container/wp-dev-container
 LABEL org.opencontainers.image.documentation=https://github.com/ndigitals/wp-dev-container/wiki
@@ -15,15 +15,15 @@ WORKDIR /var/www
 # This setup is generally a direct copy from https://github.com/WordPress/wpdev-docker-images
 #
 
-ENV COMPOSER_ALLOW_SUPERUSER 1
-ENV COMPOSER_HOME /tmp
+ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV COMPOSER_HOME=/tmp
 
 # install the PHP extensions we need
 RUN set -ex; \
 	\
 	apt-get update; \
 	\
-	apt-get install -y --no-install-recommends libjpeg-dev libpng-dev libwebp-dev libzip-dev libmemcached-dev unzip libmagickwand-dev ghostscript libonig-dev locales sudo rsync libxslt-dev git; \
+	apt-get install -y --no-install-recommends libjpeg-dev libpng-dev libwebp-dev libzip-dev libssl-dev libmemcached-dev unzip libmagickwand-dev ghostscript libonig-dev locales sudo rsync libxslt-dev git; \
 	apt-get upgrade openssl -y; \
 	update-ca-certificates --fresh; \
 	sed -i 's/^# *\(\(ru_RU\|fr_FR\|de_DE\|es_ES\|ja_JP\).UTF-8\)/\1/' /etc/locale.gen; \
@@ -31,13 +31,15 @@ RUN set -ex; \
 	\
 	docker-php-ext-configure gd --enable-gd --with-jpeg=/usr --with-webp=/usr; \
 	\
-	docker-php-ext-install gd opcache mysqli zip exif intl mbstring xml xsl; \
+	docker-php-ext-install opcache || true; \
+	\
+	docker-php-ext-install gd mysqli zip exif intl mbstring xml xsl; \
 	\
 	curl --location --output /usr/local/bin/pickle https://github.com/FriendsOfPHP/pickle/releases/download/v0.7.11/pickle.phar; \
 	chmod +x /usr/local/bin/pickle; \
 	\
-	pickle install memcached-3.2.0; \
-	pickle install xdebug-3.3.0; \
+	pickle install memcached-3.4.0; \
+	pickle install xdebug-3.5.0; \
 	pickle install imagick; \
 	docker-php-ext-enable imagick; \
 	\
