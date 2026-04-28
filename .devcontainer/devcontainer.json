@@ -13,7 +13,7 @@
     "ghcr.io/devcontainers/features/common-utils:2": {
       "username": "wp_php"
     },
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:2": {
       "version": "${localEnv:NODE_VERSION}"
     },
     "ghcr.io/devcontainers/features/git:1": {},
